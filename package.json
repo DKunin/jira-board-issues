@@ -1,7 +1,7 @@
 {
   "name": "jira-board-issues",
   "version": "1.0.0",
-  "description": "Get jira board issues, with quickfilter and jql",
+  "description": "Get jira board issues, with boardId and jql",
   "main": "./index.js",
   "repository": {},
   "scripts": {},
