@@ -1,0 +1,13 @@
+{
+  "name": "jira-board-issues",
+  "version": "1.0.0",
+  "description": "Get jira board issues, with quickfilter and jql",
+  "main": "./index.js",
+  "repository": {},
+  "scripts": {},
+  "author": "DKunin",
+  "license": "MIT",
+  "dependencies": {
+    "express": "4.14.0"
+  }
+}
