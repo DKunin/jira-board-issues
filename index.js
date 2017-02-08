@@ -46,6 +46,19 @@ app.get('/api/kanban', function(req, res) {
     }).then(data => res.json(data.issues));
 });
 
+app.get('/api/search', function(req, res) {
+    const { jql } = req.query;
+
+    httpsRequest({
+        host: JIRA_PATH,
+        path: `/rest/api/2/search?` + (jql ? `&jql=${escape(jql)}` : ''),
+        headers: {
+            Authorization: 'Basic ' + JIRA_PASS,
+            'Content-Type': 'application/json'
+        }
+    }).then(data => res.json(data.issues));
+});
+
 app.listen(port);
 
 console.log(`Listening on port ${port}`);
