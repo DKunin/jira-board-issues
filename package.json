@@ -4,7 +4,10 @@
   "description": "Get jira board issues, with boardId and jql",
   "main": "./index.js",
   "repository": {},
-  "scripts": {},
+  "scripts": {
+    "start": "node ./",
+    "pretty": "prettier ./*.js --single-quote --tab-width 4 --write"
+  },
   "author": "DKunin",
   "license": "MIT",
   "dependencies": {
