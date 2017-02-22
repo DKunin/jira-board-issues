@@ -6,7 +6,9 @@
   "repository": {},
   "scripts": {
     "start": "node ./",
-    "pretty": "prettier ./*.js --single-quote --tab-width 4 --write"
+    "pretty": "prettier ./*.js --single-quote --tab-width 4 --write",
+    "docker-image-build": "docker build ./ -t $(whoami)/jira-board-issues",
+    "docker-image-start": "docker run -p 4747:4747 -e JIRA_PASS=$JIRA_PASS -e JIRA_PATH=$JIRA_PATH -d $(whoami)/jira-board-issues"
   },
   "author": "DKunin",
   "license": "MIT",

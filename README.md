@@ -27,6 +27,12 @@ Before usage JIRA_PASS and JIRA_PATH env variables should be set in your .bashrc
     npm start
 ```
 
+With Docker:
+```console
+    docker build ./ -t $(whoami)/jira-board-issues
+    docker run -p 4747:4747 -e JIRA_PASS=$JIRA_PASS -e JIRA_PATH=$JIRA_PATH -d $(whoami)/jira-board-issues
+```
+
 ## Usage
 
 Example request:
