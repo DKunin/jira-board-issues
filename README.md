@@ -1,5 +1,7 @@
 # Jira Board Issues
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/DKunin/jira-board-issues.svg)](https://greenkeeper.io/)
+
 Simple module - to make request to jira api, and recieve issues
 
 ## Table of Contents
