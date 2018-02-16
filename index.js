@@ -1,9 +1,6 @@
 'use strict';
 const https = require('https');
-const express = require('express');
-const app = express();
 const { JIRA_PASS, JIRA_PATH } = process.env;
-const port = 4747;
 
 function httpsRequest(options) {
     return new Promise((resolve, reject) => {
@@ -23,44 +20,70 @@ function httpsRequest(options) {
     });
 }
 
-app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept'
-    );
-    next();
-});
-
-app.get('/api/kanban', function(req, res) {
-    const { jql, boardId, quickFilter } = req.query;
-    httpsRequest({
-        host: JIRA_PATH,
-        path: `/rest/agile/1.0/board/${boardId}/issue?quickFilter=${quickFilter}&jql=${escape(
-            jql
-        )}`,
-        headers: {
-            Authorization: 'Basic ' + JIRA_PASS,
-            'Content-Type': 'application/json'
+function processResult(data) {
+    return data.map(singleIssue => {
+        return {
+            key: singleIssue.key,
+            summary: singleIssue.fields.summary,
+            assignee: singleIssue.fields.assignee.name
         }
-    }).then(data => res.json(data.issues));
-});
+    });
+}
 
-app.get('/api/search', function(req, res) {
-    const { jql } = req.query;
+function agregateResult(data) {
+    return data.reduce((newArray, singleIssue) => {
 
-    httpsRequest({
-        host: JIRA_PATH,
-        path: `/rest/api/2/search?` + (jql ? `&jql=${escape(jql)}` : ''),
-        headers: {
-            Authorization: 'Basic ' + JIRA_PASS,
-            'Content-Type': 'application/json'
+        const { assignee } = singleIssue;
+        if (Array.isArray(newArray[assignee])) {
+            newArray[assignee].push(singleIssue);
+        } else {
+            newArray[assignee] = [singleIssue];
         }
-    }).then(data => res.json(data.issues));
+
+        return newArray;
+    }, {});
+}
+
+function printOut(data) {
+    return Object.keys(data).reduce((newString, singleKey) => {
+        const ids = data[singleKey].reduce((newStr, singleItem) => {
+            return newStr+=`\n https://jr.avito.ru/browse/${singleItem.key}`;
+        },'');
+        return newString += `@${singleKey} ${data[singleKey].length}:\n ${ids} \n\n`;
+    }, '');
+}
+
+function printOutShort(data) {
+    return Object.keys(data).reduce((newString, singleKey) => {
+        const jql = escape(`assignee in (${singleKey}) AND status in (Resolved, "Waiting for release")`);
+        return newString += `@${singleKey} ${data[singleKey].length}:\n https://jr.avito.ru/issues/?jql=${jql} \n\n`;
+    }, '');
+}
+
+function performSearch(jql) {
+    return new Promise(resolve => {
+        httpsRequest({
+                host: JIRA_PATH,
+                path: `/rest/api/2/search?` + (jql ? `&jql=${escape(jql)}&maxResults=500` : ''),
+                headers: {
+                    Authorization: 'Basic ' + JIRA_PASS,
+                    'Content-Type': 'application/json'
+                }
+            }).then(data => {
+                resolve(data.issues);
+            });
+    })
+}
+
+const fullTeam = 'alsolomentsev, dakharin, oaosipov, eisakova, vkaltyrin, mmotylev, poignatov, isolkin, dkunin, dvpanov, myuveselov, mvkamashev';
+const votedTeam = 'vkaltyrin, mmotylev, eisakova, myuveselov';
+const resolved = `assignee in (${votedTeam}) AND status in (Resolved, "Waiting for release")`;
+const inReview = `assignee in (${votedTeam}) AND status = "In Review"`;
+
+performSearch(inReview).then(result => {
+    console.log(printOut(agregateResult(processResult(result))));
 });
 
-app.listen(port);
-
-console.log(
-    `http://${port}/api/kanban?boardId=229&jql=assignee%20=%20currentUser()`
-);
+// performSearch(resolved).then(result => {
+//     console.log(printOutShort(agregateResult(processResult(result))));
+// });
