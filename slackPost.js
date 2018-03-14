@@ -10,11 +10,9 @@ module.exports = function(text, channel, path) {
         };
 
         var payload1 = {
-            // channel,
-            channel: '@dkunin',
-            username: 'Pull Request Bot',
-            text,
-            icon_emoji: ':cosy:'
+            channel,
+            username: '',
+            text
         };
 
         var req = https.request(options, function(res) {

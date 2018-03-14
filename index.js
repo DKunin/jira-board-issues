@@ -1,6 +1,6 @@
 'use strict';
 const https = require('https');
-const { JIRA_PASS, JIRA_PATH } = process.env;
+const { JIRA_PASS, JIRA_PATH, TNS_TEAM } = process.env;
 
 function httpsRequest(options) {
     return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ function agregateResult(data) {
 function printOut(data) {
     return Object.keys(data).reduce((newString, singleKey) => {
         const ids = data[singleKey].reduce((newStr, singleItem) => {
-            return newStr+=`\n https://jr.avito.ru/browse/${singleItem.key}`;
+            return newStr+=`\n https://${JIRA_PATH}/browse/${singleItem.key}`;
         },'');
         return newString += `@${singleKey} ${data[singleKey].length}:\n ${ids} \n\n`;
     }, '');
@@ -56,7 +56,7 @@ function printOut(data) {
 function printOutShort(data) {
     return Object.keys(data).reduce((newString, singleKey) => {
         const jql = escape(`assignee in (${singleKey}) AND status in (Resolved, "Waiting for release")`);
-        return newString += `@${singleKey} ${data[singleKey].length}:\n https://jr.avito.ru/issues/?jql=${jql} \n\n`;
+        return newString += `@${singleKey} ${data[singleKey].length}:\n https://${JIRA_PATH}/issues/?jql=${jql} \n\n`;
     }, '');
 }
 
@@ -75,15 +75,15 @@ function performSearch(jql) {
     })
 }
 
-const fullTeam = 'alsolomentsev, dakharin, oaosipov, eisakova, vkaltyrin, mmotylev, poignatov, isolkin, dkunin, dvpanov, myuveselov, mvkamashev';
-const votedTeam = 'vkaltyrin, mmotylev, eisakova, myuveselov';
-const resolved = `assignee in (${votedTeam}) AND status in (Resolved, "Waiting for release")`;
-const inReview = `assignee in (${votedTeam}) AND status = "In Review"`;
+const resolved = `assignee in (${TNS_TEAM}) AND status in (Resolved, "Waiting for release")`;
+const inReview = `assignee in (${TNS_TEAM}) AND status = "In Review"`;
 
 performSearch(inReview).then(result => {
-    console.log(printOut(agregateResult(processResult(result))));
+	console.log('## Tasks in review');
+	console.log(printOut(agregateResult(processResult(result))));
 });
 
-// performSearch(resolved).then(result => {
-//     console.log(printOutShort(agregateResult(processResult(result))));
-// });
+performSearch(resolved).then(result => {
+	console.log('## Not closed tasks');
+	console.log(printOutShort(agregateResult(processResult(result))));
+});
