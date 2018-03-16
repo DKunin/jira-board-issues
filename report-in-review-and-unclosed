@@ -1,6 +1,11 @@
+#!/usr/bin/env node
+
 'use strict';
+
 const https = require('https');
-const { JIRA_PASS, JIRA_PATH, TNS_TEAM } = process.env;
+const slackPost = require('./slackPost');
+
+const { JIRA_PASS, JIRA_PATH, TNS_TEAM, SLACK_BOT_SERVICE } = process.env;
 
 function httpsRequest(options) {
     return new Promise((resolve, reject) => {
@@ -77,13 +82,12 @@ function performSearch(jql) {
 
 const resolved = `assignee in (${TNS_TEAM}) AND status in (Resolved, "Waiting for release")`;
 const inReview = `assignee in (${TNS_TEAM}) AND status = "In Review"`;
+const reciever = '';
 
 performSearch(inReview).then(result => {
-	console.log('## Tasks in review');
-	console.log(printOut(agregateResult(processResult(result))));
+    slackPost('## Tasks in review \n' + printOut(agregateResult(processResult(result))), reciever, SLACK_BOT_SERVICE);
 });
 
 performSearch(resolved).then(result => {
-	console.log('## Not closed tasks');
-	console.log(printOutShort(agregateResult(processResult(result))));
+    slackPost('## Not closed tasks \n' + printOutShort(agregateResult(processResult(result))), reciever, SLACK_BOT_SERVICE);
 });
