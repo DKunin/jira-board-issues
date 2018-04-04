@@ -37,19 +37,6 @@ function processResult(data) {
     });
 }
 
-function agregateResult(data) {
-    return data.reduce((newArray, singleIssue) => {
-        const { assignee } = singleIssue;
-        if (Array.isArray(newArray[assignee])) {
-            newArray[assignee].push(singleIssue);
-        } else {
-            newArray[assignee] = [singleIssue];
-        }
-
-        return newArray;
-    }, {});
-}
-
 function agregateResultPerUser(data, assignee) {
     return data.reduce((newArray, singleIssue) => {
         if (assignee === singleIssue.assignee) {
@@ -102,14 +89,17 @@ function performSearch(jql) {
 
 const resolved = `assignee in (${TNS_TEAM}) AND status in (Resolved, "Waiting for release")`;
 const inReview = `assignee in (${TNS_TEAM}) AND status = "In Review"`;
-const reciever = '';
+
+slackPost('Agent worked', `@dkunin`, SLACK_BOT_SERVICE);
 
 performSearch(inReview).then(result => {
     const resultArray = processResult(result);
-    const uniqueUsers = Object.keys(resultArray.reduce((newObject, singleItem) => {
-        return Object.assign(newObject, { [singleItem.assignee]: true });
-    }, {}));
-    
+    const uniqueUsers = Object.keys(
+        resultArray.reduce((newObject, singleItem) => {
+            return Object.assign(newObject, { [singleItem.assignee]: true });
+        }, {})
+    );
+
     uniqueUsers.forEach(singleUser => {
         slackPost(
             '## Tasks in review \n' +
@@ -117,15 +107,17 @@ performSearch(inReview).then(result => {
             `@${singleUser}`,
             SLACK_BOT_SERVICE
         );
-    })
+    });
 });
 
 performSearch(resolved).then(result => {
     const resultArray = processResult(result);
-    const uniqueUsers = Object.keys(resultArray.reduce((newObject, singleItem) => {
-        return Object.assign(newObject, { [singleItem.assignee]: true });
-    }, {}));
-    
+    const uniqueUsers = Object.keys(
+        resultArray.reduce((newObject, singleItem) => {
+            return Object.assign(newObject, { [singleItem.assignee]: true });
+        }, {})
+    );
+
     uniqueUsers.forEach(singleUser => {
         slackPost(
             '## Not closed tasks \n' +
@@ -133,5 +125,5 @@ performSearch(resolved).then(result => {
             `@${singleUser}`,
             SLACK_BOT_SERVICE
         );
-    })
+    });
 });
